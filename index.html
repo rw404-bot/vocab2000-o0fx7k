@@ -88,11 +88,11 @@ function header(){
   $('#hdr').textContent=`已學會 ${k} / ${WORDS.length} 字 ・ 連續學習 ${S.streak} 天`;
 }
 function nav(){
-  const T=[['learn','📖 今日學習'],['quiz','📝 小測驗'],['review','🔁 複習錯題'],['pv','🧩 片語動詞'],['sc','💬 情境句型'],['over','📊 進度/設定'],['all','🔎 單字總表']];
+  const T=[['learn','📖 今日學習'],['quiz','📝 小測驗'],['review','🔁 複習錯題'],['pv','🧩 片語動詞'],['sc','💬 情境句型'],['ph','🔤 自然發音'],['over','📊 進度/設定'],['all','🔎 單字總表']];
   $('#nav').innerHTML=T.map(([k,n])=>`<button class="${tab===k?'on':''}" onclick="go('${k}')">${n}</button>`).join('');
 }
 window.go=t=>{tab=t;render()};
-function render(){header();nav();({learn,quiz:quizHome,review,over,all,pv:pvTab,sc:scTab})[tab]()}
+function render(){header();nav();({learn,quiz:quizHome,review,over,all,pv:pvTab,sc:scTab,ph:phTab})[tab]()}
 
 /* ---- 今日學習 ---- */
 function wordRow(w){
@@ -257,6 +257,60 @@ function scTab(){
     <div class="inf"><div class="en" style="font-size:18px" onclick="speak(SC[${si}].lines[${li}].en)">${esc(l.en)}</div>
     <div class="zh scz" style="${hideZh?'visibility:hidden':''}" onclick="this.style.visibility='visible'">${esc(l.zh)}</div></div></div>`).join('')}</details>`).join('')}`;
   $('#hz').onchange=e=>{hideZh=e.target.checked;document.querySelectorAll('.scz').forEach(z=>z.style.visibility=hideZh?'hidden':'visible')};
+}
+
+/* ---- 自然發音速查表 ---- */
+const PHONICS=[
+  {t:'步驟 1：5 個短母音 (CVC 短字)',d:'子音 + 短母音 + 子音，是最基礎的拼讀規則。',rows:[
+    ['a','/æ/','嘴巴張大（接近「ㄝ」與「ㄚ」之間）',['cat','bad','map','hand']],
+    ['e','/ɛ/','微笑扁嘴、短促（「ㄝ」）',['bed','pen','red','desk']],
+    ['i','/ɪ/','短促輕聲（接近「一」但放鬆）',['sit','big','fish','milk']],
+    ['o','/ɑ/','嘴型圓張（接近「啊」）',['hot','dog','box','stop']],
+    ['u','/ʌ/','放鬆短促（接近「阿」）',['cup','bus','sun','run']]
+  ]},
+  {t:'步驟 2：魔法 e (Magic E / 長母音)',d:'字尾有不發音的 e 時，前面的母音念回字母原本的名字（A, E, I, O, U）。',rows:[
+    ['a_e','/eɪ/','念字母 A 的音',['cake','make','name','late']],
+    ['i_e','/aɪ/','念字母 I 的音',['bike','time','like','five']],
+    ['o_e','/oʊ/','念字母 O 的音',['home','note','hope','close']],
+    ['u_e','/ju/ 或 /u/','念字母 U 的音',['cute','use','rule','June']]
+  ]},
+  {t:'步驟 3：常見雙子音組合',d:'兩個子音合在一起變成一個新聲音。',rows:[
+    ['sh','/ʃ/','像「噓」的聲音',['shop','ship','fish','wash']],
+    ['ch','/tʃ/','像「吃」的聲音（有氣）',['chair','check','lunch','much']],
+    ['th (清)','/θ/','舌尖輕咬上下齒之間吹氣（無聲）',['think','thank','three','bath']],
+    ['th (濁)','/ð/','舌尖輕咬上下齒之間振動聲帶',['this','that','they','mother']],
+    ['ph','/f/','完全等於 f 的音',['phone','photo','elephant']],
+    ['ng','/ŋ/','鼻音（舌根抵住後方）',['sing','long','morning']],
+    ['wh','/w/','多數念 /w/（少數如 who 念 /h/）',['what','when','where','white']]
+  ]},
+  {t:'步驟 4：常見母音組合與 r 控制母音',d:'兩個母音一起通常念第一個字母的長音；母音後接 r 會改變音色。',rows:[
+    ['ee / ea','/i/','長音「一」',['see','tree','tea','eat']],
+    ['ai / ay','/eɪ/','長音 A',['rain','wait','day','play']],
+    ['oa / ow','/oʊ/','長音 O',['boat','coat','snow','know']],
+    ['oo (長)','/u/','長音「烏」',['food','moon','room','cool']],
+    ['oo (短)','/ʊ/','短促「屋」',['book','good','look','foot']],
+    ['ou / ow','/aʊ/','「ㄠ」的音',['out','house','now','down']],
+    ['ar','/ɑr/','「啊兒」捲舌',['car','park','start','hard']],
+    ['or','/ɔr/','「喔兒」捲舌',['for','more','short','work']],
+    ['er / ir / ur','/ər/','都是同一個「厄兒」捲舌音',['her','bird','first','turn']]
+  ]},
+  {t:'台灣人最容易混淆的 4 組發音（點字比較）',d:'練習時可以輪流點同一列的單字，聽出差別並跟著念。',rows:[
+    ['a vs e','/æ/ vs /ɛ/','嘴張大 vs 微笑扁嘴',['bad','bed','man','men']],
+    ['th vs s','/θ/ vs /s/','咬舌吹氣 vs 不咬舌',['think','sink','thin','sin']],
+    ['v vs w','/v/ vs /w/','上齒輕碰下唇 vs 圓嘴',['very','well','vest','west']],
+    ['l vs r','/l/ vs /r/','舌尖頂上顎 vs 舌頭微捲',['light','right','fly','fry']]
+  ]}
+];
+function phTab(){
+  $('#main').innerHTML=`<h3>🔤 自然發音速查表（點任何單字直接發音）</h3>
+  <p class="mu">建議每天挑 1 個步驟，先試著自己拼念再點單字確認發音。</p>
+  ${PHONICS.map((sec,si)=>`<details ${si===0?'open':''} style="margin:14px 0">
+    <summary style="font-size:18px;font-weight:700;cursor:pointer">${esc(sec.t)}</summary>
+    <p class="mu">${esc(sec.d)}</p>
+    <table><tr><th>拼字</th><th>IPA</th><th>口訣 / 提示</th><th>例字（點擊發音）</th></tr>
+    ${sec.rows.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td style="color:var(--pri)">${esc(r[1])}</td><td>${esc(r[2])}</td>
+      <td>${r[3].map(w=>`<button class="b g" style="margin:2px;padding:4px 10px" onclick="speak('${w}')">🔊 ${esc(w)}</button>`).join('')}</td></tr>`).join('')}
+    </table></details>`).join('')}`;
 }
 
 /* ---- 單字總表 ---- */
